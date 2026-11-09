@@ -1,0 +1,54 @@
+name: Repository validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-repository:
+    name: Validate repository catalogue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate required documentation and catalogue
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          required = {
+              "README.md": "# Matrix Agent Hub",
+              "research/repos/README.md": "# External source-code catalogue",
+          }
+
+          for filename, heading in required.items():
+              path = Path(filename)
+              if not path.is_file():
+                  sys.exit(f"ERROR: required file is missing: {filename}")
+              content = path.read_text(encoding="utf-8")
+              if heading not in content:
+                  sys.exit(f"ERROR: expected heading not found in {filename}")
+              if not content.strip():
+                  sys.exit(f"ERROR: file is empty: {filename}")
+
+          catalogue = Path("research/repos/README.md").read_text(encoding="utf-8")
+          ids = re.findall(r"^\| (REPO-\d{4}) \|", catalogue, flags=re.MULTILINE)
+          if not ids:
+              sys.exit("ERROR: no numbered repository entries found")
+          if len(ids) != len(set(ids)):
+              sys.exit("ERROR: duplicate repository catalogue IDs found")
+
+          numbers = [int(item.removeprefix("REPO-")) for item in ids]
+          if numbers != list(range(numbers[0], numbers[0] + len(numbers))):
+              sys.exit("ERROR: repository catalogue IDs are not sequential")
+
+          print(f"OK: validated {len(required)} documentation files and {len(ids)} catalogue entries.")
+          PY
