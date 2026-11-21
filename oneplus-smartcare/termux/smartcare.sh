@@ -19,10 +19,16 @@ if [ ! -d "$DOWNLOAD" ]; then echo 'Opslag niet beschikbaar. Voer termux-setup-s
  echo '== BESTANDEN =='
  for rel in Download Documents DCIM Pictures Movies Android/media; do
   dir="$SHARED/$rel"; echo "-- $rel --"
-  if [ -d "$dir" ]; then find "$dir" -type f -printf '%s bytes | %p\\n' 2>/dev/null | head -n 5000; else echo 'Niet beschikbaar of geen toegang.'; fi
+  if [ -d "$dir" ]; then find "$dir" -type f -printf '%s bytes | %p\n' 2>/dev/null | head -n 5000; else echo 'Niet beschikbaar of geen toegang.'; fi
  done
  echo '== APK- EN SCRIPTCONTROLE =='
- find "$DOWNLOAD" -type f \\( -iname '*.apk' -o -iname '*.sh' -o -iname '*.py' -o -iname '*.js' -o -iname '*.jar' \\) -print0 2>/dev/null | while IFS= read -r -d '' f; do echo "-- $f"; sha256sum "$f" 2>/dev/null || true; file "$f" 2>/dev/null || true; done
+ find "$DOWNLOAD" -type f -print0 2>/dev/null |
+ while IFS= read -r -d '' f; do
+  case "$f" in
+   *.apk|*.APK|*.sh|*.SH|*.py|*.PY|*.js|*.JS|*.jar|*.JAR)
+    echo "-- $f"; sha256sum "$f" 2>/dev/null || true; file "$f" 2>/dev/null || true ;;
+  esac
+ done
  echo 'SHA-256 is geen malwaredetectie.'
  echo 'Geen bestanden uitgevoerd, geïnstalleerd, gewijzigd of verwijderd.'
  echo 'SCAN VOLTOOID'
