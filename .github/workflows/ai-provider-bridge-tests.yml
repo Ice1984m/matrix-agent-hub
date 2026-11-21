@@ -1,0 +1,23 @@
+name: AI provider bridge tests
+
+on:
+  push:
+    branches:
+      - feat/ai-matrix-multimodel-bridge
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run provider adapter tests
+        run: node --test prototypes/ai-matrix-provider-bridge/tests/ai-providers.test.mjs
